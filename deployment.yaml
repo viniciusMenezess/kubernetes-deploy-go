@@ -4,7 +4,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: go-server
-  #namespace: go
   labels:
     app: goapi
 spec:
@@ -30,7 +29,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: go-service
-  #namespace: go
 spec:
   selector:
     app: goapi
@@ -40,21 +38,23 @@ spec:
       port: 80
       targetPort: 80
 
+---
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  #namespace: go
-  name: go-ingress
-  annotations:
-    allow.http: "false"
+  name: go-ingress-route
 spec:
-  rules:
-  - host: go.rancher.dev-ops-ninja.com
-    http:
-      paths:
-        - path: /
-          backend:
-            serviceName: go-service
-            servicePort: 80
+  entryPoints:
+    - web # 1. Onde o Traefik deve "ouvir"
+  routes:
+    - match: Host(`go.rancher.vini.skyone.guru`) # 2. Condição para rotear
+      kind: Rule
+      services:
+        # APONTE PARA O SEU SERVICE DO KUBERNETES AQUI!
+        - name: go-service # <--- O NOME DO SEU SERVICE "go-service"
+          port: 80         # <--- A PORTA DO SEU SERVICE "go-service"
+          kind: KubernetesService # Não precisa especificar, é o padrão
+
+
